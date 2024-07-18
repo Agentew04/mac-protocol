@@ -28,3 +28,18 @@ e CRC para detecção de erro no payload (controle de erro).
 | End Frame Delimiter | 8 bits | 0xFE | Define o fim do quadro |
 
 O tamanho mínimo de um quadro é de 40
+
+### Tamanhos e Offsets
+
+- start frame delimiter (1 byte) = 0-7
+- payload length (1 byte) = 8-15
+- transmitter address (48 bits) = 16-63
+- receiver address (48 bits) = 64-111
+- payload frame number (6 bits) = 112-117
+- ack (1 bit) = 118
+- ack number (6 bits) = 119-124
+- crc (16 bits) = 125-140
+- parity bit (1 bit) = 141
+- padding size (2 bits) = 142-143
+- payload (0-1020 bits) = 144-x (multiplos de 4)
+- end frame delimiter (1 byte) = x+1-x+8

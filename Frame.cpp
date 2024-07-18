@@ -25,6 +25,8 @@ header:
 - end frame delimiter (1 byte) = x+1-x+8
 */
 
+const int headerSize = 8+8+(48*2)+6+1+6+16+1+2;
+
 std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
     std::vector<Frame> frames;
 
@@ -40,6 +42,14 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
         frame.startFrameDelimiter = 0xCA;
 
         int payloadSize = std::max(0, std::min(maxPayloadSize, (int)data.size() - dataPointer));
+        int paddingSize = 0;
+        if(payloadSize % 4 != 0){
+            paddingSize = 4 - (payloadSize % 4);
+        }
+
+        if(paddingSize > 3 || paddingSize < 0 || paddingSize+payloadSize > 255*4 || (payloadSize+paddingSize) % 4 != 0){
+            std::cout << "[Frame::generateFrames] Erro no padding! Tamanho do payload: " << payloadSize << "; Tamanho do padding: " << paddingSize << std::endl;
+        }
         frame.payloadLength = payloadSize / 4;
 
         frame.receiverAddress = 0;
@@ -52,7 +62,6 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
         frame.crc = 0; // nao calculo agora por causa dos enderecos
         frame.parityBit = 0;
 
-        int paddingSize = 4 - (payloadSize % 4);
         frame.paddingSize = paddingSize;
 
         for(int j=0; j<payloadSize; j++){
@@ -64,7 +73,7 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
         }
 
         if(frame.payload.size() % 4 != 0){
-            std::cout << "Erro no padding!" << std::endl;
+            std::cout << "[Frame::generateFrames] Erro no padding! Tamanho do payload: " << frame.payload.size() << std::endl;
         }
         
         frame.endFrameDelimiter = 0xFE;
@@ -91,87 +100,106 @@ Frame Frame::generateAck(int ackNumber){
     return ack;
 }
 
+std::vector<bit> intToBits(uint64_t num, size_t bits){
+    std::vector<bit> bitsVector;
+    bitsVector.reserve(bits);
+    for(size_t i = 0; i < bits; i++){
+        bitsVector.push_back((num >> i) & 1);
+    }
+    return bitsVector;
+}
+
+uint64_t bitsToInt(const std::vector<bit>& bits, uint32_t start, size_t length){
+    uint64_t num = 0;
+    for(size_t i = 0; i < length; i++){
+        num |= bits[start + i] << i;
+    }
+    return num;
+}
+
 std::vector<bit> Frame::toBits() const{
     std::vector<bit> bits;
-    bits.reserve(8 + 8 + 48 + 48 + 6 + 1 + 6 + 16 + 1 + 2 + 8);
+    bits.reserve(headerSize + payload.size() + 8);
     
-    bits.push_back(startFrameDelimiter);
-    bits.push_back(payloadLength);
-    std::bitset<6> transmitterAddressBits(transmitterAddress);
-    bits.push_back(transmitterAddress);
-    bits.push_back(receiverAddress);
-    bits.push_back(payloadFrameNumber);
-    bits.push_back(ack);
-    bits.push_back(ackNumber);
-    bits.push_back(crc);
-    bits.push_back(parityBit);
-    bits.push_back(paddingSize);
+    auto startFrameDelimiterBits = intToBits(startFrameDelimiter, 8);
+    bits.insert(bits.end(), startFrameDelimiterBits.begin(), startFrameDelimiterBits.end());
 
-    for(auto &b : payload){
-        bits.push_back(b);
+    auto payloadLengthBits = intToBits(payloadLength, 8);
+    bits.insert(bits.end(), payloadLengthBits.begin(), payloadLengthBits.end());
+
+    auto transmitterBits = intToBits(transmitterAddress, 48);
+    bits.insert(bits.end(), transmitterBits.begin(), transmitterBits.end());
+
+    auto receiverBits = intToBits(receiverAddress, 48);
+    bits.insert(bits.end(), receiverBits.begin(), receiverBits.end());
+
+    auto payloadFrameNumberBits = intToBits(payloadFrameNumber, 6);
+    bits.insert(bits.end(), payloadFrameNumberBits.begin(), payloadFrameNumberBits.end());
+
+    bits.push_back(ack);
+
+    auto ackNumberBits = intToBits(ackNumber, 6);
+    bits.insert(bits.end(), ackNumberBits.begin(), ackNumberBits.end());
+
+    auto crcBits = intToBits(crc, 16);
+    bits.insert(bits.end(), crcBits.begin(), crcBits.end());
+
+    bits.push_back(parityBit);
+
+    auto paddingSizeBits = intToBits(paddingSize, 2);
+    bits.insert(bits.end(), paddingSizeBits.begin(), paddingSizeBits.end());
+
+    if(bits.size() != headerSize){
+        std::cout << "[Frame::toBits] Erro no tamanho do header! Expected " << headerSize << ", got " << bits.size() << "." << std::endl;
     }
 
-    bits.push_back(endFrameDelimiter);
+    if(payload.size() % 4 != 0){
+        std::cout << "[Frame::toBits] Erro no tamanho do payload! Expected multiple of 4, got " << payload.size() << "." << std::endl;
+    }
+
+    if(payload.size() != payloadLength*4 + paddingSize){
+        std::cout << "[Frame::toBits] Tamanho do payload nao corresponde! Expected " << payloadLength*4 + paddingSize << ", got " << payload.size() << "." << std::endl;
+    }
+
+    bits.insert(bits.end(), payload.begin(), payload.end());
+
+    auto endFrameDelimiterBits = intToBits(endFrameDelimiter, 8);
+    bits.insert(bits.end(), endFrameDelimiterBits.begin(), endFrameDelimiterBits.end());
+
+    if(bits.size() != headerSize + payloadLength*4 + paddingSize + 8){
+        std::cout << "[Frame::toBits] Erro no tamanho do frame! Expected " << headerSize + payloadLength*4 + paddingSize + 8 << ", got " << bits.size() << "." << std::endl;
+    }
 
     return bits;
 }
 
 Frame Frame::fromBits(const std::vector<bit>& bits){
-    Frame frame;
-    int i = 0;
-    
-    frame.startFrameDelimiter = bits[i];
-    i++;
-    frame.payloadLength = bits[i];
-    i++;
+    Frame f;
 
-    for(int j = 0; j < 6; j++){
-        frame.transmitterAddress |= bits[i] << j;
-        i++;
+
+    f.startFrameDelimiter = bitsToInt(bits, 0, 8);
+    f.payloadLength = bitsToInt(bits, 8, 8);
+    f.transmitterAddress = bitsToInt(bits, 16, 48);
+    f.receiverAddress = bitsToInt(bits, 64, 48);
+    f.payloadFrameNumber = bitsToInt(bits, 112, 6);
+    f.ack = bits[118];
+    f.ackNumber = bitsToInt(bits, 119, 6);
+    f.crc = bitsToInt(bits, 125, 16);
+    f.parityBit = bits[141];
+    f.paddingSize = bitsToInt(bits, 142, 2);
+
+    if(bits.size() != headerSize + f.payloadLength*4 + f.paddingSize + 8){
+        std::cout << "[Frame::fromBits] Erro no tamanho do frame! Expected " << headerSize + f.payloadLength*4 + f.paddingSize + 8 << ", got " << bits.size() << "." << std::endl;
+        std::cout << "Payload Length: " << (int)f.payloadLength << std::endl;
+        std::cout << "Padding Size: " << (int)f.paddingSize << std::endl;
     }
 
-    for(int k = 0; k < 6; k++){
-        frame.receiverAddress |= bits[i] << k;
-        i++;
-    }
+    int payloadStart = 144;
+    int payloadEnd = payloadStart + f.payloadLength*4 + f.paddingSize;
+    f.payload = std::vector<bit>(bits.begin() + payloadStart, bits.begin() + payloadEnd);
 
-    for(int l = 0; l < 6; l++){
-        frame.payloadFrameNumber |= bits[i] << l;
-        i++;
-    }
-
-    frame.ack = bits[i];
-
-    for(int m = 0; m < 6; m++){
-        frame.ackNumber |= bits[i] << m;
-        i++;
-    }
-
-    for(int n = 0; n < 16; n++){
-        frame.crc |= bits[i] << n;
-        i++;
-    }
-
-    frame.parityBit = bits[i];
-
-    for(int o = 0; o < 2; o++){
-        frame.paddingSize |= bits[i] << o;
-        i++;
-    }
-
-    while(i < bits.size() - 8){
-        bit byte = 0;
-        for(int p = 0; p < 8; p++){
-            byte |= bits[i] << p;
-            i++;
-        }
-        frame.payload.push_back(byte);
-    }
-
-    frame.endFrameDelimiter = bits[i];
-
-    return frame;
-
+    f.endFrameDelimiter = bitsToInt(bits, payloadEnd, 8);
+    return f;
 }
 
 Frame::Frame(){

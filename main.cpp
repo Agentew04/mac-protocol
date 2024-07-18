@@ -13,7 +13,7 @@ std::vector<bit> generateData(){
     std::mt19937 gen(time(nullptr));
 
     // numero de bits
-    std::uniform_int_distribution<int> dist(3000, 5000);
+    std::uniform_int_distribution<int> dist(5'000, 10'000);
     // bit aleatorio
     std::uniform_int_distribution<int> dist2(0, 1);
 
@@ -34,7 +34,77 @@ void printData(const std::vector<bit> &data){
     std::cout << std::endl;
 }
 
+bool selftest(){
+    std::cout << "Self testing..." << std::endl;
+    // testar tobit e frombit
+    std::vector<bit> data = generateData();
+    auto frames = Frame::generateFrames(data);
+    for(auto &f : frames){
+        auto bits = f.toBits();
+        auto f2 = Frame::fromBits(bits);
+        if(f.startFrameDelimiter != f2.startFrameDelimiter){
+            std::cout << "startFrameDelimiter diferente!" << std::endl;
+            return false;
+        }
+        if(f.payloadLength != f2.payloadLength){
+            std::cout << "payloadLength diferente!" << std::endl;
+            return false;
+        }
+        if(f.transmitterAddress != f2.transmitterAddress){
+            std::cout << "transmitterAddress diferente!" << std::endl;
+            return false;
+        }
+        if(f.receiverAddress != f2.receiverAddress){
+            std::cout << "receiverAddress diferente!" << std::endl;
+            return false;
+        }
+        if(f.payloadFrameNumber != f2.payloadFrameNumber){
+            std::cout << "payloadFrameNumber diferente!" << std::endl;
+            return false;
+        }
+        if(f.ack != f2.ack){
+            std::cout << "ack diferente!" << std::endl;
+            return false;
+        }
+        if(f.ackNumber != f2.ackNumber){
+            std::cout << "ackNumber diferente!" << std::endl;
+            return false;
+        }
+        if(f.crc != f2.crc){
+            std::cout << "crc diferente!" << std::endl;
+            return false;
+        }
+        if(f.parityBit != f2.parityBit){
+            std::cout << "parityBit diferente!" << std::endl;
+            return false;
+        }
+        if(f.paddingSize != f2.paddingSize){
+            std::cout << "paddingSize diferente! F1=" << (int)f.paddingSize << "; F2=" << (int)f2.paddingSize << ";" << std::endl;
+            return false;
+        }
+        if(f.endFrameDelimiter != f2.endFrameDelimiter){
+            std::cout << "endFrameDelimiter diferente! F1=" << (int)f.endFrameDelimiter << "; F2=" << (int)f2.endFrameDelimiter << std::endl;
+            return false;
+        }
+        for(size_t i = 0; i < f.payload.size(); i++){
+            if(f.payload[i] != f2.payload[i]){
+                std::cout << "payload diferente em i=" << i << "." << std::endl;
+                return false;
+            }
+        }
+    }
+
+    std::cout << "\t[OK] Frame toBits and fromBits" << std::endl;
+    return true;
+}
+
 int main(void){
+    if(!selftest()){
+        std::cout << "Self test failed!" << std::endl;
+        return 1;
+    }
+    return 0;
+    
     Channel enlace;
 
     // gerar os dados
