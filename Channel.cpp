@@ -17,7 +17,6 @@ Frame Channel::pass(Frame frame) {
     for (int i = 0; i < bits.size(); i++) {
         double rate = bitDistribution(gen);
         if (rate < bitErrorRate) {
-            std::cout << "Erro de bit" << std::endl;
             if(bits[i] == 0){
                 bits[i] = 1;
             }else{

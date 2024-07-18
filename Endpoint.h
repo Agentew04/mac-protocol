@@ -48,20 +48,18 @@ private:
     Endpoint* receiver = nullptr;
     Channel* channel = nullptr;
     std::queue<Frame> incomingBuffer;
-    std::vector<Frame> data;
     
 
     // variaveis da implementacao vao aqui
     std::queue<Frame> outgoingBuffer;
     
+    int currenttick = 0;
 
     // go back n
     int windowSize = 8 - 1; // 2^6 - 1 = 63
-    int nextFrameToSend = 0;
-    int lastAckReceived = -1;
-    int timeoutTicks = 32;
-    int lastAckTime = 0;
-    int currentTick = 0;
+    int base = 1; //número de sequência do primeiro pacote não confirmado.
+    int nextSeqNum = 1; // número de sequência do próximo pacote a ser enviado.
+    std::vector<Frame> data; // window. armazena os pacotes enviados, mas não confirmados.
 };
 
 #endif
