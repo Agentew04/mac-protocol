@@ -16,9 +16,11 @@ bool Endpoint::finished() const {
 void Endpoint::setReceiver(Endpoint* receiver) {
     this->receiver = receiver;
 
+
     for(auto& frame: data){
         frame.receiverAddress = receiver->address;
         frame.transmitterAddress = address;
+        frame.calculateRedundancy();
     }
 }
 

@@ -68,7 +68,7 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
 
 std::vector<bit> Frame::toBits() const{
     std::vector<bit> bits;
-    bits.reserve(8 + 8 + 48 + 48 + 6 + 1 + 6 + 16 + 1 + 2 + payload.size() * 8 + 8);
+    bits.reserve(8 + 8 + 48 + 48 + 6 + 1 + 6 + 16 + 1 + 2 + payload.size() * 4 + 8);
     
     bits.push_back(startFrameDelimiter);
     bits.push_back(payloadLength);
@@ -82,9 +82,9 @@ std::vector<bit> Frame::toBits() const{
     bits.push_back(parityBit);
     bits.push_back(paddingSize);
 
-    for(auto &b : payload){
+    /*for(auto &b : payload){
         bits.push_back(b);
-    }
+    }*/
 
     bits.push_back(endFrameDelimiter);
 
@@ -181,4 +181,17 @@ void Frame::print()const{
     }
     std::cout << std::endl;
     std::cout << "End Frame Delimiter: " << (int)endFrameDelimiter << std::endl;
+}
+
+void Frame::calculateRedundancy(){
+    std::vector<bit> bits = toBits();
+
+    // calcular o CRC16
+    crc = crc16((char*)bits.data(), bits.size());
+
+    // calcular o bit de paridade
+    parityBit = parity((char*)bits.data(), bits.size());
+
+    std::cout << "CRC: " << crc << std::endl;
+    std::cout << "Parity Bit: " << (int)parityBit << std::endl;
 }
