@@ -7,59 +7,70 @@
 
 using namespace std;
 
+/*
+seguindo o readme:
+
+header:
+- start frame delimiter (1 byte) = 0-7
+- payload length (1 byte) = 8-15
+- transmitter address (48 bits) = 16-63
+- receiver address (48 bits) = 64-111
+- payload frame number (6 bits) = 112-117
+- ack (1 bit) = 118
+- ack number (6 bits) = 119-124
+- crc (16 bits) = 125-140
+- parity bit (1 bit) = 141
+- padding size (2 bits) = 142-143
+- payload (0-1020 bits) = 144-x (multiplos de 4)
+- end frame delimiter (1 byte) = x+1-x+8
+*/
+
 std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
     std::vector<Frame> frames;
-    Frame frame;
-    int i = 0;
-    
-    while(i < data.size()){
+
+    int maxPayloadSize = 255*4.0;
+    int frameCount = data.size() / maxPayloadSize;
+    frameCount += data.size() % maxPayloadSize == 0 ? 0 : 1;
+
+    std::cout << "Generating " << frameCount << " frames..." << std::endl;
+
+    int dataPointer = 0;
+    for(int i=0; i<frameCount; i++){
+        Frame frame;
         frame.startFrameDelimiter = 0xCA;
-        frame.payloadLength = 0;
-        frame.transmitterAddress = 0;
+
+        int payloadSize = std::max(0, std::min(maxPayloadSize, (int)data.size() - dataPointer));
+        frame.payloadLength = payloadSize / 4;
+
         frame.receiverAddress = 0;
-        frame.payloadFrameNumber = i / 8;
+        frame.transmitterAddress = 0;
+
+        frame.payloadFrameNumber = i;
         frame.ack = 0;
         frame.ackNumber = 0;
-        frame.crc = 0;
+
+        frame.crc = 0; // nao calculo agora por causa dos enderecos
         frame.parityBit = 0;
-        frame.paddingSize = 0;
-        frame.payload.clear();
-        frame.endFrameDelimiter = 0xCA;
-        
-        // preencher o frame com os dados
-        // do vetor de bits
-        for(int j = 0; j < 8; j++){
-            if(i < data.size()){
-                frame.payload.push_back(data[i]);
-                i++;
-            } else {
-                frame.payload.push_back(0);
-            }
+
+        int paddingSize = 4 - (payloadSize % 4);
+        frame.paddingSize = paddingSize;
+
+        for(int j=0; j<payloadSize; j++){
+            frame.payload.push_back(data[dataPointer]);
+            dataPointer++;
         }
-        
-        // calcular o CRC16
-        frame.crc = crc16((char*)frame.payload.data(), frame.payload.size());
-        
-        // calcular o bit de paridade
-        frame.parityBit = parity((char*)frame.payload.data(), frame.payload.size());
-        
-        // calcular o padding
-        frame.paddingSize = 4 - (frame.payload.size() % 4);
-        
-        // adicionar o padding
-        for(int k = 0; k < frame.paddingSize; k++){
+        for(int j=0; j<paddingSize; j++){
             frame.payload.push_back(0);
         }
+
+        if(frame.payload.size() % 4 != 0){
+            std::cout << "Erro no padding!" << std::endl;
+        }
         
-        // calcular o tamanho do payload
-        frame.payloadLength = frame.payload.size() / 4;
-        
-        // adicionar o frame ao vetor de frames
+        frame.endFrameDelimiter = 0xFE;
         frames.push_back(frame);
     }
-
     return frames;
-
 }
 
 Frame Frame::generateAck(int ackNumber){
