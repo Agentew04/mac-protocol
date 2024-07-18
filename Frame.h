@@ -14,6 +14,13 @@ public:
     /// @return Vetor de frames
     static std::vector<Frame> generateFrames(const std::vector<bit>& data);
 
+
+    /// @brief Gera um ack a partir de um frame
+    /// @param int ackNumber Numero do ack
+    /// @return Frame com o ack
+    static Frame generateAck(int ackNumber);
+
+
     /// @brief Calcula o tamanho do payload
     /// @param data Vetor de bits com os dados
     /// @return Vetor de bits com o tamanho do payload

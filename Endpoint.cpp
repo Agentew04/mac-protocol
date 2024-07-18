@@ -44,6 +44,7 @@ void Endpoint::update() {
             // dados recebidos
             // responder com ACK
             // craftar frame de ACK
+
         }
     }
 
