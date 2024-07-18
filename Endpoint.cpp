@@ -15,6 +15,11 @@ bool Endpoint::finished() const {
 
 void Endpoint::setReceiver(Endpoint* receiver) {
     this->receiver = receiver;
+
+    for(auto& frame: data){
+        frame.receiverAddress = receiver->address;
+        frame.transmitterAddress = address;
+    }
 }
 
 void Endpoint::setChannel(Channel* channel) {
@@ -30,9 +35,27 @@ void Endpoint::update() {
         Frame frame = incomingBuffer.front();
         incomingBuffer.pop();
         if (frame.ack == 1){
+            lastAckTime = currentTick;
             lastAckReceived = frame.ackNumber;
             nextFrameToSend = lastAckReceived + 1;
+        }else{
+            // dados recebidos
+            // responder com ACK
+            // craftar frame de ACK
         }
     }
-    
+
+    // envia todos da janela atual
+    for (int i = nextFrameToSend; i < nextFrameToSend + windowSize && i < data.size(); i++) {
+        Frame frame = data[i];
+
+        if(channel->shouldDrop()){
+            continue;
+        }
+
+        frame = channel->pass(frame);
+
+        receiver->receive(frame);
+    }
+    currentTick++;
 }

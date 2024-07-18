@@ -29,6 +29,8 @@ public:
     /// @brief Imprime o frame na tela
     void print()const;
 
+    void calculateRedundancy();
+
     
 
     /*Start Frame Delimiter	8 bits	0xCA	Define o início do quadro
