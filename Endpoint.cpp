@@ -21,6 +21,7 @@ void Endpoint::setReceiver(Endpoint* receiver) {
         frame.receiverAddress = receiver->address;
         frame.transmitterAddress = address;
         frame.calculateRedundancy();
+        std::cout << frame.checkCrc() << std::endl;
     }
 }
 

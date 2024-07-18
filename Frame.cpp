@@ -206,3 +206,7 @@ void Frame::calculateRedundancy(){
     // calcular o bit de paridade
     parityBit = parity((char*)headerBits.data(), headerBits.size());
 }
+
+bool Frame::checkCrc(){
+    return crc == crc16((char*)payload.data(), payload.size());
+}
