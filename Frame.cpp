@@ -5,11 +5,7 @@
 #include <vector>
 #include <bitset>
 
-
-
 using namespace std;
-
-
 
 std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
     std::vector<Frame> frames;
@@ -21,7 +17,7 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
         frame.payloadLength = 0;
         frame.transmitterAddress = 0;
         frame.receiverAddress = 0;
-        frame.payloadFrameNumber = 0;
+        frame.payloadFrameNumber = i / 8;
         frame.ack = 0;
         frame.ackNumber = 0;
         frame.crc = 0;
@@ -66,9 +62,27 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
 
 }
 
+Frame Frame::generateAck(int ackNumber){
+    std::vector<Frame> acks;
+    Frame ack;
+    ack.startFrameDelimiter = 0xCA;
+    ack.payloadLength = 0;
+    ack.transmitterAddress = 0;
+    ack.receiverAddress = 0;
+    ack.payloadFrameNumber = 0;
+    ack.ack = 1;
+    ack.ackNumber = ackNumber;
+    ack.crc = 0;
+    ack.parityBit = 0;
+    ack.paddingSize = 0;
+    ack.endFrameDelimiter = 0xCA;
+
+    return ack;
+}
+
 std::vector<bit> Frame::toBits() const{
     std::vector<bit> bits;
-    bits.reserve(8 + 8 + 48 + 48 + 6 + 1 + 6 + 16 + 1 + 2 + payload.size() * 4 + 8);
+    bits.reserve(8 + 8 + 48 + 48 + 6 + 1 + 6 + 16 + 1 + 2 + 8);
     
     bits.push_back(startFrameDelimiter);
     bits.push_back(payloadLength);
@@ -82,9 +96,9 @@ std::vector<bit> Frame::toBits() const{
     bits.push_back(parityBit);
     bits.push_back(paddingSize);
 
-    /*for(auto &b : payload){
+    for(auto &b : payload){
         bits.push_back(b);
-    }*/
+    }
 
     bits.push_back(endFrameDelimiter);
 
@@ -163,7 +177,6 @@ Frame::Frame(){
     endFrameDelimiter = 0;
 }
 
-
 void Frame::print()const{
     std::cout << "Start Frame Delimiter: " << (int)startFrameDelimiter << std::endl;
     std::cout << "Payload Length: " << (int)payloadLength << std::endl;
@@ -184,14 +197,12 @@ void Frame::print()const{
 }
 
 void Frame::calculateRedundancy(){
-    std::vector<bit> bits = toBits();
+    std::vector<bit> headerBits = {startFrameDelimiter, payloadLength, (bit)(transmitterAddress, receiverAddress), payloadFrameNumber, ack, ackNumber, parityBit, paddingSize};
+    std::vector<bit> dataBits = payload;
 
     // calcular o CRC16
-    crc = crc16((char*)bits.data(), bits.size());
+    crc = crc16((char*)payload.data(), payload.size());
 
     // calcular o bit de paridade
-    parityBit = parity((char*)bits.data(), bits.size());
-
-    std::cout << "CRC: " << crc << std::endl;
-    std::cout << "Parity Bit: " << (int)parityBit << std::endl;
+    parityBit = parity((char*)headerBits.data(), headerBits.size());
 }
