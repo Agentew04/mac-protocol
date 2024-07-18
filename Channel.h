@@ -26,7 +26,7 @@ private:
     std::uniform_real_distribution<double> dropDistribution;
     std::uniform_real_distribution<double> bitDistribution;
     double dropThreshold = 1/100.0; // 1% de chance de dropar
-    double bitErrorRate = 0.1/100.0; // 0,1% de chance de erro de bit
+    double bitErrorRate = 1/100.0; // 0,1% de chance de erro de bit
 };
 
 #endif

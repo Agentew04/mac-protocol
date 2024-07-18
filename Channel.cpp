@@ -1,5 +1,7 @@
 #include "Channel.h"
 
+#include <iostream>
+
 Channel::Channel() {
     gen = std::mt19937(rd());
     dropDistribution = std::uniform_real_distribution<double>(0, 1);
@@ -13,7 +15,9 @@ bool Channel::shouldDrop() {
 Frame Channel::pass(Frame frame) {
     std::vector<bit> bits = frame.toBits();
     for (int i = 0; i < bits.size(); i++) {
-        if (bitDistribution(gen) < bitErrorRate) {
+        double rate = bitDistribution(gen);
+        if (rate < bitErrorRate) {
+            std::cout << "Erro de bit" << std::endl;
             if(bits[i] == 0){
                 bits[i] = 1;
             }else{

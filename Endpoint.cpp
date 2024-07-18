@@ -37,7 +37,7 @@ void Endpoint::update() {
         Frame frame = incomingBuffer.front();
         incomingBuffer.pop();
 
-        std::cout << "Recebi frame " << frame.payloadFrameNumber << std::endl;
+        std::cout << "Recebi frame " << (int)frame.payloadFrameNumber << std::endl;
     }
 
     // envia todos da janela atual
