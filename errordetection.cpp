@@ -1,6 +1,5 @@
 #include "errordetection.h"
 
-#include <cstdint>
 
 
 uint16_t crc16(char *data_p, size_t length){
