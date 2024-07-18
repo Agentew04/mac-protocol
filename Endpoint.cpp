@@ -10,7 +10,7 @@ Endpoint::Endpoint() {
 }
 
 bool Endpoint::finished() const {
-    return data.empty() && incomingBuffer.empty();
+    return base == data.size() + 1;
 }
 
 void Endpoint::setReceiver(Endpoint* receiver) {
@@ -36,7 +36,7 @@ void Endpoint::receive(const Frame& frame) {
 
 
 void Endpoint::update() {
-    
+    std::cout << "Incoming size: " << incomingBuffer.size() << std::endl;
     while (!incomingBuffer.empty()) {
         Frame frame = incomingBuffer.front();
         incomingBuffer.pop();
@@ -50,30 +50,44 @@ void Endpoint::update() {
                 if (ackNum >= base) {
                     base = ackNum + 1;
                     std::cout << "Recebi ACK para frame " << ackNum << std::endl;
+                    while (!windowBuffer.empty() && windowBuffer.front().payloadFrameNumber <= ackNum) {
+                        windowBuffer.pop();
+                    }
                 }
             } else {
                 // Recebeu um dado, envia ACK
-                Frame ackFrame = Frame::cre
-                ackFrame.payloadFrameNumber = frame.payloadFrameNumber;
-                ackFrame.ack = true;
-                receiver->receive(ackFrame);
-                std::cout << "Enviando ACK para frame " << (int)frame.payloadFrameNumber << std::endl;
+                Frame ackFrame = Frame::generateAck(frame.payloadFrameNumber);
+                if(!channel->shouldDrop()){
+                    std::cout << "Enviando ACK para frame " << (int)frame.payloadFrameNumber << std::endl;
+                    ackFrame = channel->pass(ackFrame);
+                    receiver->receive(ackFrame);
+                }else{
+                    std::cout << "ACK para frame" << (int)frame.payloadFrameNumber << " foi dropado" << std::endl;
+                }
             }
 
         }
     }
 
-    // envia todos da janela atual
-    //for alguma coisa
-        Frame frame = data[i];
+    std::cout << "nextSeqNum: " << nextSeqNum << " base: " << base << " windowSize: " << windowSize << std::endl;
+    while (nextSeqNum < base + windowSize && nextSeqNum <= data.size()) {
+        Frame frame = data[nextSeqNum - 1];
 
-        if(!channel->shouldDrop()){
+        windowBuffer.push(frame); // Adiciona ao buffer da janela
+        if (!channel->shouldDrop()) {
             frame = channel->pass(frame);
             receiver->receive(frame);
-            std::cout << "Enviando frame " << i << std::endl;
-        }else{
-            std::cout << "Pacote " << i << " foi dropado" << std::endl;
+            std::cout << "Enviando frame " << nextSeqNum << std::endl;
+        } else {
+            std::cout << "Pacote " << nextSeqNum << " foi dropado" << std::endl;
         }
+
+        nextSeqNum++;
+    }
+
+    // Se a janela estiver vazia, reinicia o nextSeqNum
+    if (base == nextSeqNum) {
+        nextSeqNum = base;
     }
 
     currentTick++;

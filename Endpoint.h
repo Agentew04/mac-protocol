@@ -53,13 +53,14 @@ private:
     // variaveis da implementacao vao aqui
     std::queue<Frame> outgoingBuffer;
     
-    int currenttick = 0;
+    int currentTick = 0;
 
     // go back n
     int windowSize = 8 - 1; // 2^6 - 1 = 63
-    int base = 1; //número de sequência do primeiro pacote não confirmado.
+    int base = 1; // número de sequência do primeiro pacote não confirmado.
     int nextSeqNum = 1; // número de sequência do próximo pacote a ser enviado.
     std::vector<Frame> data; // window. armazena os pacotes enviados, mas não confirmados.
+    std::queue<Frame> windowBuffer; // Buffer da janela de envio
 };
 
 #endif
