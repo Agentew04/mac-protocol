@@ -68,6 +68,8 @@ public:
 
     void calculateRedundancy();
 
+    bool checkCrc();
+
     
 
     /*Start Frame Delimiter	8 bits	0xCA	Define o início do quadro
