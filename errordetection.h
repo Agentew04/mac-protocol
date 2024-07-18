@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <cstddef>
-
+#include <stdlib.h>
 
 /// @brief Calcula o CRC16 de uma sequencia binaria de dados. Opera bit a bit.
 /// @param data_p Ponteiro para os dados. Cada char representa um BIT nao um byte.

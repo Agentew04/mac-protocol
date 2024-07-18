@@ -4,7 +4,6 @@
 #include <ctime>
 
 #include "Endpoint.h"
-#include "Channel.h"
 #include "Frame.h"
 #include "errordetection.h"
 

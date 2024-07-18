@@ -42,6 +42,8 @@ public:
     /// Deve enviar confirmacoes se recebeu algo ou enviar
     /// um quadro se tiver algo para enviar.
     void update();
+
+    uint64_t address = 0;
 private:
     Endpoint* receiver = nullptr;
     Channel* channel = nullptr;
@@ -50,7 +52,17 @@ private:
     
 
     // variaveis da implementacao vao aqui
+    std::queue<Frame> outgoingBuffer;
+    
 
+    std::vector<Frame> data;
+    // go back n
+    int windowSize = 64 - 1; // 2^6 - 1 = 63
+    int nextFrameToSend = 0;
+    int lastAckReceived = -1;
+    int timeoutTicks = 32;
+    int lastAckTime = 0;
+    int currentTick = 0;
 };
 
 #endif
