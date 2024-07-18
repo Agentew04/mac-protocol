@@ -15,59 +15,6 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
     std::vector<Frame> frames;
     Frame frame;
     int i = 0;
-    int j = 0;
-    int k = 0;
-    int l = 0;
-    int m = 0;
-    int n = 0;
-    int o = 0;
-    int p = 0;
-    int q = 0;
-    int r = 0;
-    int s = 0;
-    int t = 0;
-    int u = 0;
-    int v = 0;
-    int w = 0;
-    int x = 0;
-    int y = 0;
-    int z = 0;
-    int a = 0;
-    int b = 0;
-    int c = 0;
-    int d = 0;
-    int e = 0;
-    int f = 0;
-    int g = 0;
-    int h = 0;
-    int ii = 0;
-    int jj = 0;
-    int kk = 0;
-    int ll = 0;
-    int mm = 0;
-    int nn = 0;
-    int oo = 0;
-    int pp = 0;
-    int qq = 0;
-    int rr = 0;
-    int ss = 0;
-    int tt = 0;
-    int uu = 0;
-    int vv = 0;
-    int ww = 0;
-    int xx = 0;
-    int yy = 0;
-    int zz = 0;
-    int aaa = 0;
-    int bbb = 0;
-    int ccc = 0;
-    int ddd = 0;
-    int eee = 0;
-    int fff = 0;
-    int ggg = 0;
-    int hhh = 0;
-    int iii = 0;
-    int jjj = 0;
     
     while(i < data.size()){
         frame.startFrameDelimiter = 0xCA;
@@ -85,7 +32,7 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
         
         // preencher o frame com os dados
         // do vetor de bits
-        for(j = 0; j < 8; j++){
+        for(int j = 0; j < 8; j++){
             if(i < data.size()){
                 frame.payload.push_back(data[i]);
                 i++;
@@ -104,7 +51,7 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
         frame.paddingSize = 4 - (frame.payload.size() % 4);
         
         // adicionar o padding
-        for(k = 0; k < frame.paddingSize; k++){
+        for(int k = 0; k < frame.paddingSize; k++){
             frame.payload.push_back(0);
         }
         
@@ -147,102 +94,49 @@ std::vector<bit> Frame::toBits() const{
 Frame Frame::fromBits(const std::vector<bit>& bits){
     Frame frame;
     int i = 0;
-    int j = 0;
-    int k = 0;
-    int l = 0;
-    int m = 0;
-    int n = 0;
-    int o = 0;
-    int p = 0;
-    int q = 0;
-    int r = 0;
-    int s = 0;
-    int t = 0;
-    int u = 0;
-    int v = 0;
-    int w = 0;
-    int x = 0;
-    int y = 0;
-    int z = 0;
-    int a = 0;
-    int b = 0;
-    int c = 0;
-    int d = 0;
-    int e = 0;
-    int f = 0;
-    int g = 0;
-    int h = 0;
-    int ii = 0;
-    int jj = 0;
-    int kk = 0;
-    int ll = 0;
-    int mm = 0;
-    int nn = 0;
-    int oo = 0;
-    int pp = 0;
-    int qq = 0;
-    int rr = 0;
-    int ss = 0;
-    int tt = 0;
-    int uu = 0;
-    int vv = 0;
-    int ww = 0;
-    int xx = 0;
-    int yy = 0;
-    int zz = 0;
-    int aaa = 0;
-    int bbb = 0;
-    int ccc = 0;
-    int ddd = 0;
-    int eee = 0;
-    int fff = 0;
-    int ggg = 0;
-    int hhh = 0;
-    int iii = 0;
-    int jjj = 0;
     
     frame.startFrameDelimiter = bits[i];
     i++;
     frame.payloadLength = bits[i];
     i++;
 
-    for(j = 0; j < 6; j++){
+    for(int j = 0; j < 6; j++){
         frame.transmitterAddress |= bits[i] << j;
         i++;
     }
 
-    for(k = 0; k < 6; k++){
+    for(int k = 0; k < 6; k++){
         frame.receiverAddress |= bits[i] << k;
         i++;
     }
 
-    for(l = 0; l < 6; l++){
+    for(int l = 0; l < 6; l++){
         frame.payloadFrameNumber |= bits[i] << l;
         i++;
     }
 
     frame.ack = bits[i];
 
-    for(m = 0; m < 6; m++){
+    for(int m = 0; m < 6; m++){
         frame.ackNumber |= bits[i] << m;
         i++;
     }
 
-    for(n = 0; n < 16; n++){
+    for(int n = 0; n < 16; n++){
         frame.crc |= bits[i] << n;
         i++;
     }
 
     frame.parityBit = bits[i];
 
-    for(o = 0; o < 2; o++){
+    for(int o = 0; o < 2; o++){
         frame.paddingSize |= bits[i] << o;
         i++;
     }
 
     while(i < bits.size() - 8){
         bit byte = 0;
-        for(p = 0; p < 8; p++){
+        for(int p = 0; p < 8; p++){
             byte |= bits[i] << p;
             i++;
         }
