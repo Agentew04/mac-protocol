@@ -1,7 +1,6 @@
 #include "errordetection.h"
 
 
-
 uint16_t crc16(char *data_p, size_t length){
     uint16_t crc = 0xFFFF; // Valor inicial do CRC16
     uint16_t polynomial = 0x1021; // Polinômio CRC16-CCITT

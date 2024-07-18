@@ -67,6 +67,6 @@ int main(void){
         i++;
     }
 
-    printData(data);
+    //printData(data);
     return 0;
 }

@@ -48,11 +48,13 @@ private:
     Endpoint* receiver = nullptr;
     Channel* channel = nullptr;
     std::queue<Frame> incomingBuffer;
+    std::vector<Frame> data;
+    
+
     // variaveis da implementacao vao aqui
     std::queue<Frame> outgoingBuffer;
     
 
-    std::vector<Frame> data;
     // go back n
     int windowSize = 64 - 1; // 2^6 - 1 = 63
     int nextFrameToSend = 0;
