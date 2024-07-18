@@ -47,6 +47,8 @@ private:
     Channel* channel = nullptr;
     std::queue<Frame> incomingBuffer;
     // variaveis da implementacao vao aqui
+    std::queue<Frame> outgoingBuffer;
+    
 
     std::vector<Frame> data;
     // go back n
