@@ -14,7 +14,11 @@ Frame Channel::pass(Frame frame) {
     std::vector<bit> bits = frame.toBits();
     for (int i = 0; i < bits.size(); i++) {
         if (bitDistribution(gen) < bitErrorRate) {
-            bits[i] = !bits[i];
+            if(bits[i] == 0){
+                bits[i] = 1;
+            }else{
+                bits[i] = 0;
+            }
         }
     }
     return Frame::fromBits(bits);

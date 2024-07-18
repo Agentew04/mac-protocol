@@ -58,6 +58,7 @@ int main(void){
     while(!transmissor.finished()) {
         // a cada iteracao, atualiza um tick em
         // cada maquina
+        std::cout << "Tick " << i << std::endl;
         if(i % 2 == 0){
             transmissor.update();
         } else {

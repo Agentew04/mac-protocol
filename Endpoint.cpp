@@ -19,6 +19,7 @@ void Endpoint::setReceiver(Endpoint* receiver) {
     for(auto& frame: data){
         frame.receiverAddress = receiver->address;
         frame.transmitterAddress = address;
+        frame.calculateRedundancy();
     }
 }
 
@@ -39,9 +40,15 @@ void Endpoint::update() {
             lastAckReceived = frame.ackNumber;
             nextFrameToSend = lastAckReceived + 1;
         }else{
-            // dados recebidos
-            // responder com ACK
+            // dados recebidos,responder com ACK
             // craftar frame de ACK
+            Frame ackFrame;
+            ackFrame.ack = 1;
+            // enviar frame de ack
+            if(!channel->shouldDrop()){
+                frame = channel->pass(frame);
+                receiver->receive(frame);
+            }
         }
     }
 
@@ -49,13 +56,10 @@ void Endpoint::update() {
     for (int i = nextFrameToSend; i < nextFrameToSend + windowSize && i < data.size(); i++) {
         Frame frame = data[i];
 
-        if(channel->shouldDrop()){
-            continue;
+        if(!channel->shouldDrop()){
+            frame = channel->pass(frame);
+            receiver->receive(frame);
         }
-
-        frame = channel->pass(frame);
-
-        receiver->receive(frame);
     }
     currentTick++;
 }
