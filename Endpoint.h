@@ -56,7 +56,7 @@ private:
     
 
     // go back n
-    int windowSize = 64 - 1; // 2^6 - 1 = 63
+    int windowSize = 8 - 1; // 2^6 - 1 = 63
     int nextFrameToSend = 0;
     int lastAckReceived = -1;
     int timeoutTicks = 32;

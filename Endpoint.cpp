@@ -36,21 +36,8 @@ void Endpoint::update() {
     while (!incomingBuffer.empty()) {
         Frame frame = incomingBuffer.front();
         incomingBuffer.pop();
-        if (frame.ack == 1){
-            lastAckTime = currentTick;
-            lastAckReceived = frame.ackNumber;
-            nextFrameToSend = lastAckReceived + 1;
-        }else{
-            // dados recebidos,responder com ACK
-            // craftar frame de ACK
-            Frame ackFrame;
-            ackFrame.ack = 1;
-            // enviar frame de ack
-            if(!channel->shouldDrop()){
-                frame = channel->pass(frame);
-                receiver->receive(frame);
-            }
-        }
+
+        std::cout << "Recebi frame " << frame.payloadFrameNumber << std::endl;
     }
 
     // envia todos da janela atual
@@ -60,6 +47,7 @@ void Endpoint::update() {
         if(!channel->shouldDrop()){
             frame = channel->pass(frame);
             receiver->receive(frame);
+            std::cout << "Enviando frame " << i << std::endl;
         }
     }
     currentTick++;
