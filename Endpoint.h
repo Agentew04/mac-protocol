@@ -48,6 +48,11 @@ private:
     std::queue<Frame> incomingBuffer;
     // variaveis da implementacao vao aqui
 
+    std::vector<Frame> data;
+    // go back n
+    int windowSize = 64 - 1; // 2^6 - 1 = 63
+    int nextFrameToSend = 0;
+    int lastAckReceived = -1;
 };
 
 #endif
