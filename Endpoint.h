@@ -46,6 +46,9 @@ private:
     Endpoint* receiver = nullptr;
     Channel* channel = nullptr;
     std::queue<Frame> incomingBuffer;
+    std::vector<Frame> data;
+    
+
     // variaveis da implementacao vao aqui
 
 };
