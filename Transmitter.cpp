@@ -6,7 +6,7 @@
 Transmitter::Transmitter(std::vector<Frame>& data) {
 
     // change payload number to a cyclic
-    for (int i = 0; i < data.size(); i++) {
+    for (size_t i = 0; i < data.size(); i++) {
         data[i].payloadFrameNumber = i % (windowSize+1);
     }
 
@@ -15,7 +15,7 @@ Transmitter::Transmitter(std::vector<Frame>& data) {
 
 // Verifica se todos os dados foram enviados e todos os ACKs recebidos
 bool Transmitter::finished() const {
-    return base >= data.size(); // Todos os pacotes confirmados
+    return (size_t)base >= data.size(); // Todos os pacotes confirmados
 }
 
 // Define o receptor que vai receber os dados
@@ -45,12 +45,16 @@ void Transmitter::receiveAck(const Frame& frame) {
     std::cout << "[Transmitter] Recebi ACK para frame " << ackNum << std::endl;
     if (ackNum >= base) {
         base = ackNum + 1;
-        std::cout << "[Transmitter] ACK valido. Nova base: " << base << std::endl;
+        std::cout << "[Transmitter] Eh um novo ACK. Nova base: " << base << std::endl;
         // Remove os frames confirmados do windowBuffer
         while (!windowBuffer.empty() && windowBuffer.front().payloadFrameNumber < base) {
-            std::cout << "[Transmitter] Removendo frame " << windowBuffer.front().payloadFrameNumber << " da janela" << std::endl;
+            std::cout << "[Transmitter] Removendo frame " << (int)windowBuffer.front().payloadFrameNumber << " da janela" << std::endl;
             windowBuffer.pop();
         }
+    }else{
+        // cliente nao recebeu algum pacote, retransmite a partir desse ack
+        nextSeqNum = ackNum;
+        std::cout << "[Transmitter] Cliente nao recebeu pacote, retransmitindo a partir de " << nextSeqNum << std::endl;
     }
 }
 
@@ -59,7 +63,7 @@ void Transmitter::update() {
     std::cout << "[Transmitter] Itens na janela atual: " << windowBuffer.size() << std::endl;
 
     // Envia todos os frames da janela atual
-    while (nextSeqNum < base + windowSize && nextSeqNum <= data.size()) {
+    while (nextSeqNum < base + windowSize && (size_t)nextSeqNum <= data.size()) {
         Frame frame = data[nextSeqNum - 1];
 
         if (!channel->shouldDrop()) {

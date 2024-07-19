@@ -1,11 +1,11 @@
 #include "Receiver.h"
 
 #include "Transmitter.h"
+#include "Frame.h"
+#include "Channel.h"
 
 #include <iostream>
 
-Receiver::Receiver() {
-}
 
 void Receiver::setTransmitter(Transmitter* transmitter) {
     this->transmitter = transmitter;

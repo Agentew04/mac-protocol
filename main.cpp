@@ -4,7 +4,8 @@
 #include <ctime>
 #include <thread>
 
-#include "Endpoint.h"
+#include "Transmitter.h"
+#include "Receiver.h"
 #include "Frame.h"
 #include "errordetection.h"
 
@@ -28,12 +29,6 @@ std::vector<bit> generateData(){
     return data;
 }
 
-void printData(const std::vector<bit> &data){
-    for(auto &d : data){
-        std::cout << (int)d;
-    }
-    std::cout << std::endl;
-}
 
 bool selftest(){
     std::cout << "Self testing..." << std::endl;
@@ -136,13 +131,13 @@ int main(void){
     auto frames = Frame::generateFrames(data);
 
     // simular a troca de dados na rede
-    Endpoint transmissor = Endpoint(frames);
+    Transmitter transmissor = Transmitter(frames);
     transmissor.address = 0x01'02'03'04'05'06;
-    Endpoint receptor = Endpoint();
+    Receiver receptor = Receiver();
     receptor.address = 0x06'05'04'03'02'01;
 
     transmissor.setReceiver(&receptor);
-    receptor.setReceiver(&transmissor);
+    receptor.setTransmitter(&transmissor);
     transmissor.setChannel(&enlace);
     receptor.setChannel(&enlace);
 

@@ -1,7 +1,11 @@
 #ifndef __RECEIVER_H__
 #define __RECEIVER_H__
 
+#include <cstdint>
+
+class Channel;
 class Transmitter;
+class Frame;
 
 class Receiver {
 public:

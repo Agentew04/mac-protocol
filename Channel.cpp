@@ -14,7 +14,7 @@ bool Channel::shouldDrop() {
 
 Frame Channel::pass(Frame frame) {
     std::vector<bit> bits = frame.toBits();
-    for (int i = 0; i < bits.size(); i++) {
+    for (size_t i = 0; i < bits.size(); i++) {
         double rate = bitDistribution(gen);
         if (rate < bitErrorRate) {
             std::cout << "Erro de bit em " << i << std::endl;
