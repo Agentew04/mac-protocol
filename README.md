@@ -1,4 +1,4 @@
-# mac-protocol
+# LAR2 - Link Access Request and Response
 Implementação de um protocolo fictício para controle de acesso ao enlace de dados. Feito para disciplina ELC123
 
 ## Features
