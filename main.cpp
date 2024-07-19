@@ -157,6 +157,8 @@ int main(void){
             receptor.update();
         }
         i++;
+        // sleep 1 segundo
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     //printData(data);

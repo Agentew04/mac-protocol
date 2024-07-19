@@ -4,15 +4,18 @@
 
 // Construtor para o transmissor que quer enviar dados
 Transmitter::Transmitter(std::vector<Frame>& data) {
-    for (int i = 0; i < data.size(); ++i) {
-        data[i].payloadFrameNumber = i % (windowSize + 1);
+
+    // change payload number to a cyclic
+    for (int i = 0; i < data.size(); i++) {
+        data[i].payloadFrameNumber = i % (windowSize+1);
     }
+
     this->data = data;
 }
 
 // Verifica se todos os dados foram enviados e todos os ACKs recebidos
 bool Transmitter::finished() const {
-    return base == data.size() + 1; // Todos os pacotes confirmados
+    return base >= data.size(); // Todos os pacotes confirmados
 }
 
 // Define o receptor que vai receber os dados
@@ -20,7 +23,7 @@ void Transmitter::setReceiver(Receiver* receiver) {
     this->receiver = receiver;
 
     for (auto& frame : data) {
-        frame.receiverAddress = receiver->address
+        frame.receiverAddress = receiver->address;
         frame.transmitterAddress = address;
         frame.calculateRedundancy();
     }
@@ -33,22 +36,28 @@ void Transmitter::setChannel(Channel* channel) {
 
 // Recebe um ACK do receptor e atualiza a janela
 void Transmitter::receiveAck(const Frame& frame) {
-    if (frame.isAck) {
-        int ackNum = frame.payloadFrameNumber;
-        if (ackNum >= base) {
-            base = ackNum + 1;
-            std::cout << "Recebi ACK para frame " << ackNum << std::endl;
-            // Remove os frames confirmados do windowBuffer
-            while (!windowBuffer.empty() && windowBuffer.front().seqNum <= ackNum) {
-                timeSentMap.erase(windowBuffer.front().seqNum);
-                windowBuffer.pop();
-            }
+    if(!frame.ack){
+        std::cout << "[Transmitter] Recebi um frame que não é um ACK" << std::endl;
+        return;
+    }
+
+    int ackNum = (int)frame.ackNumber;
+    std::cout << "[Transmitter] Recebi ACK para frame " << ackNum << std::endl;
+    if (ackNum >= base) {
+        base = ackNum + 1;
+        std::cout << "[Transmitter] ACK valido. Nova base: " << base << std::endl;
+        // Remove os frames confirmados do windowBuffer
+        while (!windowBuffer.empty() && windowBuffer.front().payloadFrameNumber < base) {
+            std::cout << "[Transmitter] Removendo frame " << windowBuffer.front().payloadFrameNumber << " da janela" << std::endl;
+            windowBuffer.pop();
         }
     }
 }
 
 // Função para atualizar o estado do transmissor
 void Transmitter::update() {
+    std::cout << "[Transmitter] Itens na janela atual: " << windowBuffer.size() << std::endl;
+
     // Envia todos os frames da janela atual
     while (nextSeqNum < base + windowSize && nextSeqNum <= data.size()) {
         Frame frame = data[nextSeqNum - 1];
@@ -56,14 +65,13 @@ void Transmitter::update() {
         if (!channel->shouldDrop()) {
             windowBuffer.push(frame); // Adiciona ao buffer da janela
             frame = channel->pass(frame);
-            receiver->receive(frame);
+            receiver->receiveFrame(frame);
             std::cout << "Enviando frame " << nextSeqNum << std::endl;
             timeSentMap[frame.payloadFrameNumber] = std::chrono::steady_clock::now();
 
         } else {
             std::cout << "Pacote " << nextSeqNum << " foi dropado" << std::endl;
         }
-
         nextSeqNum++;
     }
 
@@ -74,7 +82,7 @@ void Transmitter::update() {
             // Retransmite o frame
             Frame frame = data[entry.first];
             std::cout << "Timeout! Retransmitindo frame " << entry.first << std::endl;
-            receiver->receive(frame);
+            receiver->receiveFrame(frame);
             timeSentMap[frame.payloadFrameNumber] = std::chrono::steady_clock::now();
         }
     }

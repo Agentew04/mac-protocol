@@ -259,7 +259,7 @@ void Frame::calculateRedundancy(){
     parityBit = parity((char*)headerBits.data(), headerBits.size());
 }
 
-bool Frame::checkRedundancy(){
+bool Frame::checkRedundancy() const{
     Frame f2 = Frame(*this);
 
     f2.calculateRedundancy();
