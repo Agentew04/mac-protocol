@@ -39,6 +39,7 @@ bool selftest(){
     // testar tobit e frombit
     std::vector<bit> data = generateData();
     auto frames = Frame::generateFrames(data);
+    std::cout << "\t[OK] Frame::generateFrames" << std::endl;
     for(auto &f : frames){
         auto bits = f.toBits();
         auto f2 = Frame::fromBits(bits);
@@ -94,7 +95,26 @@ bool selftest(){
         }
     }
 
-    std::cout << "\t[OK] Frame toBits and fromBits" << std::endl;
+    std::cout << "\t[OK] Frame::toBits and Frame::fromBits" << std::endl;
+
+    // testar crc16
+    for(auto& frame: frames){
+        frame.calculateRedundancy();
+        if(!frame.checkRedundancy()){
+            std::cout << "Erro no crc16!" << std::endl;
+            return false;
+        }
+
+        auto bits = frame.toBits();
+        bits[0] = !bits[0];
+        auto frame2 = Frame::fromBits(bits);
+        if(frame2.checkRedundancy()){
+            std::cout << "Erro de redundancia!" << std::endl;
+            return false;
+        }
+    }
+    std::cout << "\t[OK] Frame::calculateRedundancy and Frame::checkRedundancy" << std::endl;
+
     return true;
 }
 
@@ -103,7 +123,6 @@ int main(void){
         std::cout << "Self test failed!" << std::endl;
         return 1;
     }
-    return 0;
     
     Channel enlace;
 

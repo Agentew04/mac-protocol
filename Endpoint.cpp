@@ -21,7 +21,7 @@ void Endpoint::setReceiver(Endpoint* receiver) {
         frame.receiverAddress = receiver->address;
         frame.transmitterAddress = address;
         frame.calculateRedundancy();
-        std::cout << frame.checkCrc() << std::endl;
+        std::cout << frame.checkRedundancy() << std::endl;
     }
 }
 
@@ -41,7 +41,7 @@ void Endpoint::update() {
         Frame frame = incomingBuffer.front();
         incomingBuffer.pop();
 
-        if(!frame.checkCrc()){
+        if(!frame.checkRedundancy()){
             std::cout << "Recebi frame com erro! Dropando" << std::endl;
         }else{
             if (frame.ack) {

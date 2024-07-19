@@ -68,7 +68,7 @@ public:
 
     void calculateRedundancy();
 
-    bool checkCrc();
+    bool checkRedundancy();
 
     
 

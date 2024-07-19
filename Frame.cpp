@@ -243,16 +243,27 @@ void Frame::print()const{
 }
 
 void Frame::calculateRedundancy(){
-    std::vector<bit> headerBits = {startFrameDelimiter, payloadLength, (bit)(transmitterAddress, receiverAddress), payloadFrameNumber, ack, ackNumber, parityBit, paddingSize};
     std::vector<bit> dataBits = payload;
-
-    // calcular o CRC16
     crc = crc16((char*)payload.data(), payload.size());
 
-    // calcular o bit de paridade
+    std::vector<bit> frameBits = toBits();
+    std::vector<bit> headerBits(frameBits.begin(), frameBits.begin() + headerSize);
+    // remover bit de paridade da conta
+    bit pad1 = headerBits.back(); 
+    headerBits.pop_back();
+    bit pad2 = headerBits.back(); 
+    headerBits.pop_back();
+    headerBits.pop_back(); // remove o bit de paridade
+    headerBits.push_back(pad2);
+    headerBits.push_back(pad1);
+
     parityBit = parity((char*)headerBits.data(), headerBits.size());
 }
 
-bool Frame::checkCrc(){
-    return crc == crc16((char*)payload.data(), payload.size());
+bool Frame::checkRedundancy(){
+    Frame f2 = Frame(*this);
+
+    f2.calculateRedundancy();
+
+    return crc == f2.crc && parityBit == f2.parityBit;
 }
