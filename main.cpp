@@ -147,7 +147,7 @@ int main(void){
     receptor.setChannel(&enlace);
 
     int i = 0;
-    while(!transmissor.finished() && i<100) {
+    while(!transmissor.finished() && i<10) {
         // a cada iteracao, atualiza um tick em
         // cada maquina
         std::cout << "Tick " << i << std::endl;

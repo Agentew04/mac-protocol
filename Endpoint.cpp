@@ -42,36 +42,33 @@ void Endpoint::update() {
 
         if(!frame.checkRedundancy()){
             std::cout << "Recebi frame com erro! Dropando" << std::endl;
-        }else{
-            if (frame.ack) {
-                // Recebeu um ACK
-                int ackNum = frame.payloadFrameNumber;
-                if (ackNum >= base) {
-                    base = ackNum + 1;
-                    std::cout << "Recebi ACK para frame " << ackNum << std::endl;
-                    while (!windowBuffer.empty() && windowBuffer.front().payloadFrameNumber <= ackNum) {
-                        windowBuffer.pop();
-                    }
-                }
-            } else {
-                // Recebeu um dado, envia ACK
-                Frame ackFrame = Frame::generateAck(frame.payloadFrameNumber);
-                ackFrame.receiverAddress = frame.transmitterAddress;
-                ackFrame.transmitterAddress = frame.receiverAddress;
-                ackFrame.calculateRedundancy();
-                if(!channel->shouldDrop()){
-                    std::cout << "Enviando ACK para frame " << (int)frame.payloadFrameNumber << std::endl;
-                    ackFrame = channel->pass(ackFrame);
-                    receiver->receive(ackFrame);
-                }else{
-                    std::cout << "ACK para frame" << (int)frame.payloadFrameNumber << " foi dropado" << std::endl;
-                }
+            continue;
+        }
+        if (frame.ack) {
+            // eh um ACK
+            std::cout << "Recebi ACK para frame " << (int)frame.ackNumber << std::endl;
+        } else {
+            // eh um dado
+            if(frame.payloadFrameNumber != lastReceivedFrameNumber+1){
+                std::cout << "Recebi frame fora de ordem! Dropando" << std::endl;
+                continue;
             }
+            lastReceivedFrameNumber = frame.payloadFrameNumber;
 
+            Frame ackFrame = Frame::generateAck(frame.payloadFrameNumber);
+            ackFrame.receiverAddress = frame.transmitterAddress;
+            ackFrame.transmitterAddress = frame.receiverAddress;
+            ackFrame.calculateRedundancy();
+            if(!channel->shouldDrop()){
+                std::cout << "Enviando ACK para frame " << (int)frame.payloadFrameNumber << std::endl;
+                ackFrame = channel->pass(ackFrame);
+                receiver->receive(ackFrame);
+            }else{
+                std::cout << "ACK para frame" << (int)frame.payloadFrameNumber << " foi dropado" << std::endl;
+            }
         }
     }
 
-    std::cout << "nextSeqNum: " << nextSeqNum << " base: " << base << " windowSize: " << windowSize << std::endl;
     while (nextSeqNum < base + windowSize && (uint32_t)nextSeqNum <= data.size()) {
         Frame frame = data[nextSeqNum - 1];
 
