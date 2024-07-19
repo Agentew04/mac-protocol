@@ -26,7 +26,7 @@ header:
 - end frame delimiter (1 byte) = x+1-x+8
 */
 
-const int headerSize = 8+8+(48*2)+6+1+6+16+1+2;
+const size_t headerSize = 8+8+(48*2)+6+1+6+16+1+2;
 
 std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
     std::vector<Frame> frames;
@@ -67,7 +67,7 @@ std::vector<Frame> Frame::generateFrames(const std::vector<bit>& data){
             frame.payload.push_back(data[dataPointer]);
             dataPointer++;
         }
-        if(frame.payloadLength*4-frame.paddingSize != frame.payload.size()){
+        if((size_t)(frame.payloadLength*4-frame.paddingSize) != frame.payload.size()){
             std::cout << "[Frame::generateFrames] Erro no tamanho do payload! Expected " << frame.payloadLength*4-frame.paddingSize << ", got " << frame.payload.size() << "." << std::endl;
         }
         
@@ -103,7 +103,6 @@ Frame Frame::generateAck(int ackNumber){
     ack.parityBit = 0;
     ack.paddingSize = 0;
     ack.endFrameDelimiter = 0xCA;
-
     return ack;
 }
 

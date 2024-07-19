@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 #include <ctime>
+#include <thread>
 
 #include "Endpoint.h"
 #include "Frame.h"
@@ -13,7 +14,7 @@ std::vector<bit> generateData(){
     std::mt19937 gen(time(nullptr));
 
     // numero de bits
-    std::uniform_int_distribution<int> dist(5'000, 10'000);
+    std::uniform_int_distribution<int> dist(30'000, 50'000);
     // bit aleatorio
     std::uniform_int_distribution<int> dist2(0, 1);
 
@@ -136,7 +137,9 @@ int main(void){
 
     // simular a troca de dados na rede
     Endpoint transmissor = Endpoint(frames);
+    transmissor.address = 0x01'02'03'04'05'06;
     Endpoint receptor = Endpoint();
+    receptor.address = 0x06'05'04'03'02'01;
 
     transmissor.setReceiver(&receptor);
     receptor.setReceiver(&transmissor);
@@ -144,7 +147,7 @@ int main(void){
     receptor.setChannel(&enlace);
 
     int i = 0;
-    while(!transmissor.finished()) {
+    while(!transmissor.finished() && i<100) {
         // a cada iteracao, atualiza um tick em
         // cada maquina
         std::cout << "Tick " << i << std::endl;

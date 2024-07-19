@@ -10,7 +10,7 @@ Endpoint::Endpoint() {
 }
 
 bool Endpoint::finished() const {
-    return base == data.size() + 1;
+    return (uint32_t)base == data.size() + 1;
 }
 
 void Endpoint::setReceiver(Endpoint* receiver) {
@@ -21,7 +21,6 @@ void Endpoint::setReceiver(Endpoint* receiver) {
         frame.receiverAddress = receiver->address;
         frame.transmitterAddress = address;
         frame.calculateRedundancy();
-        std::cout << frame.checkRedundancy() << std::endl;
     }
 }
 
@@ -57,6 +56,9 @@ void Endpoint::update() {
             } else {
                 // Recebeu um dado, envia ACK
                 Frame ackFrame = Frame::generateAck(frame.payloadFrameNumber);
+                ackFrame.receiverAddress = frame.transmitterAddress;
+                ackFrame.transmitterAddress = frame.receiverAddress;
+                ackFrame.calculateRedundancy();
                 if(!channel->shouldDrop()){
                     std::cout << "Enviando ACK para frame " << (int)frame.payloadFrameNumber << std::endl;
                     ackFrame = channel->pass(ackFrame);
@@ -70,14 +72,14 @@ void Endpoint::update() {
     }
 
     std::cout << "nextSeqNum: " << nextSeqNum << " base: " << base << " windowSize: " << windowSize << std::endl;
-    while (nextSeqNum < base + windowSize && nextSeqNum <= data.size()) {
+    while (nextSeqNum < base + windowSize && (uint32_t)nextSeqNum <= data.size()) {
         Frame frame = data[nextSeqNum - 1];
 
         windowBuffer.push(frame); // Adiciona ao buffer da janela
         if (!channel->shouldDrop()) {
             frame = channel->pass(frame);
             receiver->receive(frame);
-            std::cout << "Enviando frame " << nextSeqNum << std::endl;
+            std::cout << "Enviando frame " << (int)frame.payloadFrameNumber << std::endl;
         } else {
             std::cout << "Pacote " << nextSeqNum << " foi dropado" << std::endl;
         }
