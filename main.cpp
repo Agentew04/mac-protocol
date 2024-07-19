@@ -3,11 +3,13 @@
 #include <random>
 #include <ctime>
 #include <thread>
+#include <chrono>
 
 #include "Transmitter.h"
 #include "Receiver.h"
 #include "Frame.h"
 #include "errordetection.h"
+#include <unistd.h>
 
 typedef unsigned char bit;
 
@@ -153,8 +155,13 @@ int main(void){
         }
         i++;
         // sleep 1 segundo
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        //std::this_thread::sleep_for(std::chrono::seconds(1));
+        sleep(1);
+
+    
     }
+
+    std::cout << "Finished!" << std::endl;
 
     //printData(data);
     return 0;

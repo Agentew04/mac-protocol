@@ -52,11 +52,11 @@ private:
     std::queue<Frame> windowBuffer;
     int currenttick = 0;
     int windowSize = 8 - 1;
-    int base = 1;
+    int base = 0;
     int nextSeqNum = 1;
 
     std::unordered_map<int, std::chrono::steady_clock::time_point> timeSentMap; // Mapa de tempos de envio
-    const int timeoutInterval = 500; // Intervalo de timeout em milissegundos
+    const int timeoutInterval = 100; // Intervalo de timeout em milissegundos
 
 };
 

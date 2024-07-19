@@ -30,17 +30,17 @@ void Receiver::receiveFrame(const Frame& frame) {
     if (frame.payloadFrameNumber == awaitingNum) {
         // recebi o frame certo
         std::cout << "[Receiver] Recebi frame " << (int)frame.payloadFrameNumber << " corretamente" << std::endl;
-        Frame ackFrame = Frame::generateAck(frame.payloadFrameNumber);
+        Frame ackFrame = Frame::generateAck((int)frame.payloadFrameNumber);
         ackFrame.receiverAddress = frame.transmitterAddress;
         ackFrame.transmitterAddress = frame.receiverAddress;
         ackFrame.calculateRedundancy();
         awaitingNum++;
         if(!channel->shouldDrop()){
             ackFrame = channel->pass(ackFrame);
-            std::cout << "[Receiver] Enviando ACK " << (int)frame.ackNumber << std::endl;
+            std::cout << "[Receiver] Enviando ACK " << (int)ackFrame.ackNumber << std::endl;
             transmitter->receiveAck(ackFrame);
         }else{
-            std::cout << "[Receiver] ACK " << (int)frame.ackNumber << " dropado na rede" << std::endl;
+            std::cout << "[Receiver] ACK " << (int)ackFrame.ackNumber << " dropado na rede" << std::endl;
         }
 
     }else{
@@ -52,11 +52,11 @@ void Receiver::receiveFrame(const Frame& frame) {
         ackFrame.calculateRedundancy();
 
         if(!channel->shouldDrop()){
+            std::cout << "[Receiver] Enviando ACK " << (int)ackFrame.ackNumber << std::endl;
             ackFrame = channel->pass(ackFrame);
-            std::cout << "[Receiver] Enviando ACK " << (int)frame.ackNumber << std::endl;
             transmitter->receiveAck(ackFrame);
         }else{
-            std::cout << "[Receiver] ACK " << (int)frame.ackNumber << " dropado na rede" << std::endl;
+            std::cout << "[Receiver] ACK " << (int)ackFrame.ackNumber << " dropado na rede" << std::endl;
         }
     }
     

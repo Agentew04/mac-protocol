@@ -5,10 +5,10 @@
 // Construtor para o transmissor que quer enviar dados
 Transmitter::Transmitter(std::vector<Frame>& data) {
 
-    // change payload number to a cyclic
+    /*// change payload number to a cyclic
     for (size_t i = 0; i < data.size(); i++) {
         data[i].payloadFrameNumber = i % (windowSize+1);
-    }
+    }*/
 
     this->data = data;
 }
@@ -50,10 +50,11 @@ void Transmitter::receiveAck(const Frame& frame) {
         while (!windowBuffer.empty() && windowBuffer.front().payloadFrameNumber < base) {
             std::cout << "[Transmitter] Removendo frame " << (int)windowBuffer.front().payloadFrameNumber << " da janela" << std::endl;
             windowBuffer.pop();
+            timeSentMap.erase(ackNum);
         }
     }else{
         // cliente nao recebeu algum pacote, retransmite a partir desse ack
-        nextSeqNum = ackNum;
+        nextSeqNum = ackNum + 1;
         std::cout << "[Transmitter] Cliente nao recebeu pacote, retransmitindo a partir de " << nextSeqNum << std::endl;
     }
 }
@@ -79,7 +80,6 @@ void Transmitter::update() {
         nextSeqNum++;
     }
 
-    // Verifica timeouts
     auto now = std::chrono::steady_clock::now();
     for (auto& entry : timeSentMap) {
         if (std::chrono::duration_cast<std::chrono::milliseconds>(now - entry.second).count() > timeoutInterval) {

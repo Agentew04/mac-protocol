@@ -2,6 +2,8 @@
 #define __CHANNEL_H__
 
 #include <random>
+#include <unistd.h>
+
 
 #include "Frame.h"
 
@@ -25,6 +27,7 @@ private:
     std::mt19937 gen;
     std::uniform_real_distribution<double> dropDistribution;
     std::uniform_real_distribution<double> bitDistribution;
+    std::uniform_real_distribution<double> sleepDistribution;
     double dropThreshold = 1/100.0; // 1% de chance de dropar
     double bitErrorRate = 0.01/100.0; // 0,01% de chance de erro de bit
 };
