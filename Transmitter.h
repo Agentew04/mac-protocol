@@ -1,23 +1,24 @@
-#ifndef __ENDPOINT_H__
-#define __ENDPOINT_H__
-
-#include <vector>
-#include <queue>
+#ifndef __TRANSMITTER_H__
+#define __TRANSMITTER_H__
 
 #include "Frame.h"
 #include "Channel.h"
+#include <queue>
+#include <unordered_map>
+#include <chrono>
+#include <vector>
+
+
+class Receiver;
 
 /// @brief Classe que representa uma ponta do enlace.
 /// Transmite dados, espera ACKs. Recebe dados e envia ACKs.
-class Endpoint {
+class Transmitter {
 public:
 
     /// @brief Cria um endpoint que quer enviar dados.
     /// @param data Os quadros que vao ser enviados
-    Endpoint(std::vector<Frame>& data);
-    /// @brief Cria um endpoint que nao envia dados.
-    /// Apenas recebe as confirmações.
-    Endpoint();
+    Transmitter(std::vector<Frame>& data);
 
 
     /// @brief Se o endpoint enviou tudo que precisava e
@@ -27,7 +28,7 @@ public:
 
     /// @brief Define o outro endpoint que vai receber os dados.
     /// @param receiver O outro endpoint
-    void setReceiver(Endpoint* receiver);
+    void setReceiver(Receiver* receiver);
 
     /// @brief Define o enlace que o endpoint esta localizado
     /// @param channel o enlace atual
@@ -36,7 +37,7 @@ public:
     /// @brief Recebe um frame do outro endpoint. Deve ser
     /// adicionado na fila(buffer);
     /// @param frame 
-    void receive(const Frame& frame);
+    void receiveAck(const Frame& frame);
     
     /// @brief Roda um tick de atualizacao deste endpoint.
     /// Deve enviar confirmacoes se recebeu algo ou enviar
@@ -45,25 +46,18 @@ public:
 
     uint64_t address = 0;
 private:
-    Endpoint* receiver = nullptr;
+    Receiver* receiver = nullptr;
     Channel* channel = nullptr;
-    std::queue<Frame> incomingBuffer;
-    
+    std::vector<Frame> data;
+    std::queue<Frame> windowBuffer;
+    int currenttick = 0;
+    int windowSize = 8 - 1;
+    int base = 0;
+    int nextSeqNum = 1;
 
-    // variaveis da implementacao vao aqui
-    std::queue<Frame> outgoingBuffer;
-    
-    int currentTick = 0;
-    int tickTimeout = 2;
+    std::unordered_map<int, std::chrono::steady_clock::time_point> timeSentMap; // Mapa de tempos de envio
+    const int timeoutInterval = 100; // Intervalo de timeout em milissegundos
 
-    // go back n
-    int windowSize = 8 - 1; // 2^6 - 1 = 63
-    int base = 1; // número de sequência do primeiro pacote não confirmado.
-    int nextSeqNum = 1; // número de sequência do próximo pacote a ser enviado.
-    std::vector<Frame> data; // window. armazena os pacotes enviados, mas não confirmados.
-    std::queue<Frame> windowBuffer; // Buffer da janela de envio
-
-    int lastReceivedFrameNumber = -1;
 };
 
 #endif
